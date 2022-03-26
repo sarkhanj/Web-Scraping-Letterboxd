@@ -12,3 +12,6 @@ To run the app, you need to input:
 scrapy crawl movie -O ENTER_FILE_NAME_HERE.json. 
 
 All the diary data will be stored in that file. You might need a python virtual environment to run the code.
+
+## Included Examples
+There're are two ready JSON files in the repository, they show how the scraped data should look. One of them is from my personal Letterboxd diary ;)
