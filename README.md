@@ -8,4 +8,5 @@ Enjoy the json file!
 
 ## UPDATE:
 Posters arent available anymore on Letterboxd when you disable Javascript. For that reason, the poster data will be null in the scraped data :(. If anyone knows how I can deal with this situation and get poster links back, I would appreciate your help!
+A possible solution is to fetch the posters from another API, for example: https://www.themoviedb.org/documentation/api
 
