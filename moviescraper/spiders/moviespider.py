@@ -8,7 +8,11 @@ class MovieSpider(scrapy.Spider):
     name='movie'
     # user_name = input("Enter the username of a user whose diary data you want: ")
     # print(user_name)martyk0015mp
-    start_urls = ['https://letterboxd.com/martyk0015mp/films/diary/']
+    username = input("Enter a Letterboxd account username: ")
+    usernameLenWithSlashes = len(username) + 2
+    print(usernameLenWithSlashes)
+    url = 'https://letterboxd.com/' + username + '/films/diary/'
+    start_urls = [url]
     # print(start_urls)
     # custom_settings = {
         # 'CONCURRENT_REQUESTS': 1,
@@ -20,14 +24,14 @@ class MovieSpider(scrapy.Spider):
     def getDetails(self, response):
         movie = response.meta.get('movie')
     
+        poster = response.xpath('//*[@id="js-poster-col"]/section/div[1]/img/@src').get()
+    
         directors = []
         if isinstance(response.xpath('//*[@id="featured-film-header"]/p/a/span/text()'),list):
-            for director in response.xpath(
-                '//*[@id="featured-film-header"]/p/a/span/text()'):
+            for director in response.xpath('//*[@id="featured-film-header"]/p/a/span/text()'):
                 directors.append(director.get())
         else:
-            directors.append(response.xpath(
-                '//*[@id="featured-film-header"]/p/a/span/text()').get('data'))
+            directors.append(response.xpath('//*[@id="featured-film-header"]/p/a/span/text()').get('data'))
         
         genres_themes = response.xpath('//*[@id="tab-genres"]/div')
         genres = []
@@ -42,15 +46,13 @@ class MovieSpider(scrapy.Spider):
                 for genre in response.xpath('//*[@id="tab-genres"]/div[1]/p/a/text()'):
                     genres.append(genre.get())
             else:
-                genres.append(response.xpath(
-                    '//*[@id="tab-genres"]/div[1]/p/a/text()').get('data'))
+                genres.append(response.xpath('//*[@id="tab-genres"]/div[1]/p/a/text()').get('data'))
         else:
             if isinstance(response.xpath('//*[@id="tab-genres"]/div/p/a/text()'), list):
                 for genre in response.xpath('//*[@id="tab-genres"]/div/p/a/text()'):
                     genres.append(genre.get())
             else:
-                genres.append(response.xpath(
-                    '//*[@id="tab-genres"]/div/p/a/text()').get('data'))
+                genres.append(response.xpath('//*[@id="tab-genres"]/div/p/a/text()').get('data'))
         cast = []
         if isinstance(response.xpath('//*[@id="tab-cast"]/div/p/a/text()'), list):
             for actor in response.xpath('//*[@id="tab-cast"]/div/p/a/text()'):
@@ -63,29 +65,25 @@ class MovieSpider(scrapy.Spider):
             for writer in response.xpath('//*[@id="tab-crew"]/div[3]/p/a/text()'):
                 writers.append(writer.get())
         else:
-            writers.append(response.xpath(
-                '//*[@id="tab-crew"]/div[3]/p/a/text()').get('data'))
+            writers.append(response.xpath('//*[@id="tab-crew"]/div[3]/p/a/text()').get('data'))
         
         cinematographers = []
         if isinstance(response.xpath('//*[@id="tab-crew"]/div[5]/p/a/text()'),list):
             for cinematographer in response.xpath('//*[@id="tab-crew"]/div[5]/p/a/text()'):
                 cinematographers.append(cinematographer.get())
         else:
-            cinematographers.append(response.xpath(
-                '//*[@id="tab-crew"]/div[5]/p/a/text()').get('data'))
+            cinematographers.append(response.xpath('//*[@id="tab-crew"]/div[5]/p/a/text()').get('data'))
         
         composers = []
         if isinstance(response.xpath('//*[@id="tab-crew"]/div[10]/p/a/text()'),list):
             for composer in response.xpath('//*[@id="tab-crew"]/div[10]/p/a/text()'):
                 composers.append(composer.get())
         else:
-            composers.append(response.xpath(
-                '//*[@id="tab-crew"]/div[10]/p/a/text()').get('data'))
+            composers.append(response.xpath('//*[@id="tab-crew"]/div[10]/p/a/text()').get('data'))
             
             
         duration = ''
-        duration_full = response.xpath(
-            '//*[@id="film-page-wrapper"]/div[2]/section[2]/p/text()')[0].get()
+        duration_full = response.xpath('//*[@id="film-page-wrapper"]/div[2]/section[2]/p/text()')[0].get()
         duration_full = duration_full.replace('\t','').replace('\n','').replace('\xa0','')
         for i in duration_full:
             if i.isdigit():
@@ -97,26 +95,24 @@ class MovieSpider(scrapy.Spider):
             for country in response.xpath('//*[@id="tab-details"]/div[2]/p/a/text()'):
                 countries.append(country.get())
         else:
-            countries.append(response.xpath(
-                '//*[@id="tab-details"]/div[2]/p/a/text()').get('data'))
+            countries.append(response.xpath('//*[@id="tab-details"]/div[2]/p/a/text()').get('data'))
             
         languages = []
         if isinstance(response.xpath('//*[@id="tab-details"]/div[3]/p/a/text()'),list):
             for language in response.xpath('//*[@id="tab-details"]/div[3]/p/a/text()'):
                 languages.append(language.get())
         else:
-            languages.append(response.xpath(
-                '//*[@id="tab-details"]/div[3]/p/a/text()').get('data'))
+            languages.append(response.xpath('//*[@id="tab-details"]/div[3]/p/a/text()').get('data'))
         
         rating = movie.css('td.td-rating').css('span::text').get()
-        print("RATINGGGGGGGGGGGGGGG",rating)
+        # print("RATINGGGGGGGGGGGGGGG",rating)
         # rating = self.get_rating(" ½ ")
         rating = self.get_rating(rating)
 
         
         yield {
             'title':  movie.css('h3.headline-3').css('a::text').get(),
-            'link': "https://letterboxd.com"+movie.css('h3.headline-3').css('a').attrib['href'][14:],
+            'link': "https://letterboxd.com"+movie.css('h3.headline-3').css('a').attrib['href'][self.usernameLenWithSlashes:],
             'rating': rating,
             'release_date': movie.css('td.td-released').css('span::text').get(),
             'duration': duration,
@@ -128,7 +124,8 @@ class MovieSpider(scrapy.Spider):
             'cast': cast,
             'composer': composers,
             'country': countries,
-            'language': languages
+            'language': languages,
+            'poster': poster,
         }
     
     def parse(self, response):
@@ -137,12 +134,13 @@ class MovieSpider(scrapy.Spider):
         
             # genres, duration, director, cinematographer, writers, cast, composer, country, language = yield response.follow("https://letterboxd.com"+movie.css('h3.headline-3').css('a').attrib['href'][14:], callback=self.getDetails)
             # yield response.follow("https://letterboxd.com"+movie.css('h3.headline-3').css('a').attrib['href'][14:], callback=self.getDetails)
+            print("https://letterboxd.com/" + movie.css('h3.headline-3').css('a').attrib['href'][(len(self.username)+2):])
             yield scrapy.Request(
-                url="https://letterboxd.com/" + movie.css('h3.headline-3').css('a').attrib['href'][14:],
+                url="https://letterboxd.com/" + movie.css('h3.headline-3').css('a').attrib['href'][self.usernameLenWithSlashes:],
                 callback=self.getDetails,
                 meta={'movie':movie}
             )
-        
+        # //*[@id="diary-table"]/tbody/tr[1]/td[3]/h3/a
         if response.css('a.next'):
             next_page_link = response.css('a.next').attrib['href']
             next_page = "https://letterboxd.com"+next_page_link
